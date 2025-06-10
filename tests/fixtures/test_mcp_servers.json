@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "test-stdio": {
+      "command": "echo",
+      "args": ["hello", "world"]
+    },
+    "test-sse": {
+      "url": "http://localhost:9001/mcp"
+    }
+  }
+}

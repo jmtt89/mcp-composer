@@ -31,7 +31,8 @@ MCP Composer is a gateway service that **centrally manages** all your MCP server
 *   [uv](https://github.com/astral-sh/uv): A fast Python package installer and manager.
 
 ## Installation
-### Method 1:
+
+### Method 1: Local Development
 1.  **Clone the repository**:
     ```bash
     git clone https://github.com/htkuan/mcp-composer
@@ -45,11 +46,36 @@ MCP Composer is a gateway service that **centrally manages** all your MCP server
     # or directly use uv
     # uv sync
     ```
-### Method 2:
- use docker compose to run the project
+
+### Method 2: Docker
+Use docker compose to run the project:
 
 ```bash
-make run-docker
+docker-compose up --build
+```
+
+## Health Checks
+
+MCP Composer includes comprehensive health check endpoints to monitor the service status. These endpoints are essential for ensuring the service is running correctly and can be used in production environments.:
+
+- **`/api/v1/health/startup`** - Startup probe endpoint
+- **`/api/v1/health/live`** - Liveness probe endpoint  
+- **`/api/v1/health/ready`** - Readiness probe endpoint
+- **`/api/v1/health`** - Basic health check (Docker)
+
+### Testing Health Checks
+
+Use the provided script to test all health endpoints:
+
+```bash
+# Test all endpoints
+./scripts/test-health-checks.sh
+
+# Wait for service to be ready
+./scripts/test-health-checks.sh wait
+
+# Monitor health over time
+./scripts/test-health-checks.sh monitor 120
 ```
 
 ## Configuration

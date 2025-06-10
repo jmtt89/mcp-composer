@@ -1,0 +1,1 @@
+# MCP Composer tests package
