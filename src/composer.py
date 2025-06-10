@@ -1,9 +1,9 @@
 from typing import Dict, List
-from domain.server_kit import ServerKit
-from downstream_controller import DownstreamController
+from .domain.server_kit import ServerKit
+from .downstream_controller import DownstreamController
 from fastapi import FastAPI
-from gateway import Gateway
-from config import Config
+from .gateway import Gateway
+from .config import Config
 from starlette.routing import Mount
 
 
@@ -24,6 +24,8 @@ class Composer:
         return list(self.server_kits_map.values())
 
     async def get_server_kit(self, name: str) -> ServerKit:
+        if name not in self.server_kits_map:
+            raise ValueError(f"Server kit '{name}' not found")
         return self.server_kits_map[name]
 
     def create_server_kit(
@@ -86,6 +88,8 @@ class Composer:
         return list(self.gateway_map.values())
 
     async def get_gateway(self, name: str) -> Gateway:
+        if name not in self.gateway_map:
+            raise ValueError(f"Gateway '{name}' not found")
         return self.gateway_map[name]
 
     async def add_gateway(self, server_kit: ServerKit):
@@ -108,23 +112,28 @@ class Composer:
             raise ValueError(f"Gateway {name} does not exist")
 
         # Find and remove the mounted route
-        route_to_remove = None
-        target_path = f"/{name}"
-        for route in self._asgi_app.routes:
-            # Check if it's a Mount route and the path matches
-            if isinstance(route, Mount) and route.path == target_path:
-                route_to_remove = route
-                break
-
-        if route_to_remove:
-            self._asgi_app.routes.remove(route_to_remove)
-        else:
-            # Optionally handle the case where the route wasn't found,
-            # though this might indicate an inconsistent state.
-            # Consider logging a warning here.
-            pass
+        self._remove_route_from_app(name)
 
         # Remove the gateway from the map
         gateway = self.gateway_map[name]
         del self.gateway_map[name]
         return gateway
+
+    def _remove_route_from_app(self, name: str):
+        """Remove a route from the ASGI app. Separated for testability."""
+        target_path = f"/{name}"
+        routes_to_keep = []
+        route_removed = False
+        
+        for route in self._asgi_app.routes:
+            # Check if it's a Mount route and the path matches
+            if isinstance(route, Mount) and route.path == target_path:
+                route_removed = True
+                # Skip this route (don't add to routes_to_keep)
+            else:
+                routes_to_keep.append(route)
+        
+        # Replace the routes list with the filtered one
+        self._asgi_app.routes[:] = routes_to_keep
+        
+        return route_removed
