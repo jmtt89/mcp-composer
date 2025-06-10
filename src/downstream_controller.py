@@ -1,4 +1,4 @@
-from domain.downstream_server import (
+from .domain.downstream_server import (
     DownstreamMCPServerConfig,
     DownstreamMCPServer,
     DownstreamMCPServerTool,
