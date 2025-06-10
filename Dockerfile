@@ -4,17 +4,25 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    HOST=0.0.0.0 \
+    PORT=8000
 
 RUN apk add --no-cache \
     nodejs \
     npm \
-    docker-cli
+    docker-cli \
+    curl
 
-COPY pyproject.toml .
-COPY uv.lock .
+# Copy dependency files first for better layer caching
+COPY pyproject.toml uv.lock ./
 
-RUN uv venv && uv sync
+# Install dependencies
+RUN uv venv && uv sync --frozen
+
+# Copy source code
+COPY src/ ./src/
+COPY mcp_servers.example.json ./mcp_servers.json
 
 EXPOSE 8000
 
