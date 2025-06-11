@@ -5,6 +5,10 @@ from fastapi import FastAPI
 from .gateway import Gateway
 from .config import Config
 from starlette.routing import Mount
+import logging
+
+# Get logger for this module
+logger = logging.getLogger(__name__)
 
 
 class Composer:
@@ -135,5 +139,8 @@ class Composer:
         
         # Replace the routes list with the filtered one
         self._asgi_app.routes[:] = routes_to_keep
+        
+        if not route_removed:
+            logger.warning(f"No matching route found for removal: {target_path}")
         
         return route_removed
