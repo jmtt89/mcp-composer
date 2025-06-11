@@ -78,3 +78,36 @@ This is a FastAPI-based Python application that acts as a gateway for multiple M
 - Include proper error handling and user notifications
 
 When suggesting code changes or new features, ensure they follow these patterns and integrate properly with the existing architecture. Always consider the async nature of the application and proper error handling for MCP server connections.
+
+## ⚠️ MANDATORY Testing Rule
+
+**ALWAYS execute `make test 2>&1 | tee test_output.log` after making ANY code changes to verify everything works correctly.**
+
+This rule is mandatory and must be followed without exception:
+
+1. After modifying any source code files
+2. After updating tests
+3. After changing configuration files
+4. After adding new dependencies
+5. Before considering any task complete
+
+The test command redirects output to `test_output.log` for analysis:
+```bash
+make test 2>&1 | tee test_output.log
+```
+
+Then analyze the results by reading the log file to identify any failures or issues.
+
+The test suite includes:
+- Unit tests for all components
+- Integration tests for API endpoints
+- Health check validation
+- Code coverage requirements (minimum 80%)
+
+If tests fail:
+- Analyze the `test_output.log` file to understand the failures
+- Fix the issues before proceeding
+- Do not ignore test failures
+- Ensure all tests pass before marking work as complete
+
+This ensures code quality, prevents regressions, and maintains the reliability of the MCP Composer service.
