@@ -1,0 +1,15 @@
+apiVersion: v2
+name: mcp-composer
+version: 0.1.0
+appVersion: "0.1.0"
+description: A FastAPI gateway service for managing Model Context Protocol servers
+keywords:
+  - fastapi
+  - mcp
+  - gateway
+home: https://github.com/htkuan/mcp-composer
+sources:
+  - https://github.com/htkuan/mcp-composer
+maintainers:
+  - name: MCP Composer Maintainers
+    email: dev@example.com
