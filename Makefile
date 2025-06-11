@@ -9,7 +9,7 @@ install:
 	uv sync --group test
 
 run:
-	uv run src/main.py
+	uv run -m src.main
 
 run-docker:
 	docker compose up -d

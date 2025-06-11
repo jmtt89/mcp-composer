@@ -26,4 +26,4 @@ COPY mcp_servers.example.json ./mcp_servers.json
 
 EXPOSE 8000
 
-CMD ["uv", "run", "src/main.py"]
+CMD ["uv", "run", "-m", "src.main"]
