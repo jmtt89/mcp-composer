@@ -56,7 +56,7 @@ docker-compose up --build
 
 ## Health Checks
 
-MCP Composer includes comprehensive health check endpoints to monitor the service status. These endpoints are essential for ensuring the service is running correctly and can be used in production environments.:
+MCP Composer includes comprehensive health check endpoints to monitor the service status. These endpoints are essential for ensuring the service is running correctly and can be used in production environments:
 
 - **`/api/v1/health/startup`** - Startup probe endpoint
 - **`/api/v1/health/live`** - Liveness probe endpoint  
