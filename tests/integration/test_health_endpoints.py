@@ -1,5 +1,6 @@
 import pytest
 import time
+import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from unittest.mock import Mock, patch
@@ -21,7 +22,7 @@ def mock_downstream_controller():
     """Create a mock downstream controller"""
     controller = Mock(spec=DownstreamController)
     controller.is_initialized.return_value = True
-    controller._all_servers_tools = []
+    controller.list_all_servers_tools.return_value = []
     return controller
 
 
@@ -31,6 +32,10 @@ def mock_composer(mock_downstream_controller):
     composer = Mock(spec=Composer)
     composer.downstream_controller = mock_downstream_controller
     composer.gateway_map = {}
+    
+    # Configure the sync method to return empty list
+    composer.list_gateways = Mock(return_value=[])
+    
     return composer
 
 

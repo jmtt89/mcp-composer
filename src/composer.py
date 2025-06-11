@@ -24,10 +24,10 @@ class Composer:
 
     # APIs
     # ServerKit
-    async def list_server_kits(self) -> List[ServerKit]:
+    def list_server_kits(self) -> List[ServerKit]:
         return list(self.server_kits_map.values())
 
-    async def get_server_kit(self, name: str) -> ServerKit:
+    def get_server_kit(self, name: str) -> ServerKit:
         if name not in self.server_kits_map:
             raise ValueError(f"Server kit '{name}' not found")
         return self.server_kits_map[name]
@@ -57,41 +57,41 @@ class Composer:
         self.server_kits_map[name] = server_kit
         return server_kit
 
-    async def disable_server_kit(self, name: str) -> ServerKit:
+    def disable_server_kit(self, name: str) -> ServerKit:
         server_kit = self.server_kits_map[name]
         server_kit.disable_kit()
         return server_kit
 
-    async def enable_server_kit(self, name: str) -> ServerKit:
+    def enable_server_kit(self, name: str) -> ServerKit:
         server_kit = self.server_kits_map[name]
         server_kit.enable_kit()
         return server_kit
 
-    async def disable_server(self, name: str, server_name: str) -> ServerKit:
+    def disable_server(self, name: str, server_name: str) -> ServerKit:
         server_kit = self.server_kits_map[name]
         server_kit.disable_server(server_name)
         return server_kit
 
-    async def enable_server(self, name: str, server_name: str) -> ServerKit:
+    def enable_server(self, name: str, server_name: str) -> ServerKit:
         server_kit = self.server_kits_map[name]
         server_kit.enable_server(server_name)
         return server_kit
 
-    async def disable_tool(self, name: str, tool_name: str) -> ServerKit:
+    def disable_tool(self, name: str, tool_name: str) -> ServerKit:
         server_kit = self.server_kits_map[name]
         server_kit.disable_tool(tool_name)
         return server_kit
 
-    async def enable_tool(self, name: str, tool_name: str) -> ServerKit:
+    def enable_tool(self, name: str, tool_name: str) -> ServerKit:
         server_kit = self.server_kits_map[name]
         server_kit.enable_tool(tool_name)
         return server_kit
 
     # Gateway
-    async def list_gateways(self) -> List[Gateway]:
+    def list_gateways(self) -> List[Gateway]:
         return list(self.gateway_map.values())
 
-    async def get_gateway(self, name: str) -> Gateway:
+    def get_gateway(self, name: str) -> Gateway:
         if name not in self.gateway_map:
             raise ValueError(f"Gateway '{name}' not found")
         return self.gateway_map[name]
@@ -109,7 +109,7 @@ class Composer:
         self._asgi_app.mount(f"/{server_kit.name}", gateway.as_asgi_route())
         return gateway
 
-    async def remove_gateway(self, name: str):
+    def remove_gateway(self, name: str):
         if len(self.gateway_map) == 1:
             raise ValueError("Cannot remove the last gateway")
         if name not in self.gateway_map:

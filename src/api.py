@@ -63,8 +63,8 @@ async def readiness_probe(request: Request):
         return {
             "status": "ready",
             "timestamp": time.time(),
-            "downstream_servers": len(composer.downstream_controller._all_servers_tools),
-            "active_gateways": len(composer.gateway_map)
+            "downstream_servers": len(composer.downstream_controller.list_all_servers_tools()),
+            "active_gateways": len(composer.list_gateways())
         }
     except HTTPException:
         raise
@@ -98,7 +98,7 @@ async def startup_probe(request: Request):
             "status": "started",
             "timestamp": time.time(),
             "startup_duration": startup_duration,
-            "downstream_servers_initialized": len(composer.downstream_controller._all_servers_tools)
+            "downstream_servers_initialized": len(composer.downstream_controller.list_all_servers_tools())
         }
     except HTTPException:
         raise
@@ -110,14 +110,14 @@ async def startup_probe(request: Request):
 @v1_api_router.get("/kits")
 async def list_server_kits(request: Request) -> List[ServerKit]:
     composer: Composer = request.app.state.composer
-    return await composer.list_server_kits()
+    return composer.list_server_kits()
 
 
 @v1_api_router.get("/kits/{name}")
 async def get_server_kit(request: Request, name: str) -> ServerKit:
     composer: Composer = request.app.state.composer
     try:
-        return await composer.get_server_kit(name)
+        return composer.get_server_kit(name)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -125,37 +125,37 @@ async def get_server_kit(request: Request, name: str) -> ServerKit:
 @v1_api_router.post("/kits/{name}/disable")
 async def disable_server_kit(request: Request, name: str) -> ServerKit:
     composer: Composer = request.app.state.composer
-    return await composer.disable_server_kit(name)
+    return composer.disable_server_kit(name)
 
 
 @v1_api_router.post("/kits/{name}/enable")
 async def enable_server_kit(request: Request, name: str) -> ServerKit:
     composer: Composer = request.app.state.composer
-    return await composer.enable_server_kit(name)
+    return composer.enable_server_kit(name)
 
 
 @v1_api_router.post("/kits/{name}/servers/{server_name}/disable")
 async def disable_server(request: Request, name: str, server_name: str) -> ServerKit:
     composer: Composer = request.app.state.composer
-    return await composer.disable_server(name, server_name)
+    return composer.disable_server(name, server_name)
 
 
 @v1_api_router.post("/kits/{name}/servers/{server_name}/enable")
 async def enable_server(request: Request, name: str, server_name: str) -> ServerKit:
     composer: Composer = request.app.state.composer
-    return await composer.enable_server(name, server_name)
+    return composer.enable_server(name, server_name)
 
 
 @v1_api_router.post("/kits/{name}/tools/{tool_name}/disable")
 async def disable_tool(request: Request, name: str, tool_name: str) -> ServerKit:
     composer: Composer = request.app.state.composer
-    return await composer.disable_tool(name, tool_name)
+    return composer.disable_tool(name, tool_name)
 
 
 @v1_api_router.post("/kits/{name}/tools/{tool_name}/enable")
 async def enable_tool(request: Request, name: str, tool_name: str) -> ServerKit:
     composer: Composer = request.app.state.composer
-    return await composer.enable_tool(name, tool_name)
+    return composer.enable_tool(name, tool_name)
 
 
 # Gateway
@@ -176,7 +176,7 @@ def new_gateway_response(gateway: Gateway) -> GatewayResponse:
 @v1_api_router.get("/gateways")
 async def list_gateways(request: Request) -> List[GatewayResponse]:
     composer: Composer = request.app.state.composer
-    gateways = await composer.list_gateways()
+    gateways = composer.list_gateways()
     return [new_gateway_response(gateway) for gateway in gateways]
 
 
@@ -184,7 +184,7 @@ async def list_gateways(request: Request) -> List[GatewayResponse]:
 async def get_gateway(request: Request, name: str) -> GatewayResponse:
     composer: Composer = request.app.state.composer
     try:
-        gateway = await composer.get_gateway(name)
+        gateway = composer.get_gateway(name)
         return new_gateway_response(gateway)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -210,5 +210,5 @@ async def add_gateway(
 @v1_api_router.delete("/gateways/{name}")
 async def remove_gateway(request: Request, name: str) -> GatewayResponse:
     composer: Composer = request.app.state.composer
-    gateway = await composer.remove_gateway(name)
+    gateway = composer.remove_gateway(name)
     return new_gateway_response(gateway)

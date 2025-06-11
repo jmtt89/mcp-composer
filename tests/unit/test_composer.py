@@ -24,7 +24,7 @@ class TestComposer:
 
     async def test_list_server_kits_empty(self, test_composer):
         """Test listing server kits when none exist."""
-        kits = await test_composer.list_server_kits()
+        kits = test_composer.list_server_kits()
         
         assert kits == []
 
@@ -34,7 +34,7 @@ class TestComposer:
         kit1 = test_composer.create_server_kit("kit1")
         kit2 = test_composer.create_server_kit("kit2")
         
-        kits = await test_composer.list_server_kits()
+        kits = test_composer.list_server_kits()
         
         assert len(kits) == 2
         assert kit1 in kits
@@ -44,14 +44,14 @@ class TestComposer:
         """Test getting a specific server kit."""
         kit = test_composer.create_server_kit("test-kit")
         
-        retrieved_kit = await test_composer.get_server_kit("test-kit")
+        retrieved_kit = test_composer.get_server_kit("test-kit")
         
         assert retrieved_kit == kit
 
     async def test_get_server_kit_not_found(self, test_composer):
         """Test getting a non-existent server kit."""
         with pytest.raises(ValueError, match="Server kit 'non-existent' not found"):
-            await test_composer.get_server_kit("non-existent")
+            test_composer.get_server_kit("non-existent")
 
     def test_create_server_kit(self, test_composer):
         """Test creating a new server kit."""
@@ -106,7 +106,7 @@ class TestComposer:
         kit = test_composer.create_server_kit("test-kit")
         assert kit.enabled is True
         
-        updated_kit = await test_composer.disable_server_kit("test-kit")
+        updated_kit = test_composer.disable_server_kit("test-kit")
         
         assert updated_kit.enabled is False
         assert test_composer.server_kits_map["test-kit"].enabled is False
@@ -116,7 +116,7 @@ class TestComposer:
         kit = test_composer.create_server_kit("test-kit")
         kit.enabled = False
         
-        updated_kit = await test_composer.enable_server_kit("test-kit")
+        updated_kit = test_composer.enable_server_kit("test-kit")
         
         assert updated_kit.enabled is True
         assert test_composer.server_kits_map["test-kit"].enabled is True
@@ -126,7 +126,7 @@ class TestComposer:
         kit = test_composer.create_server_kit("test-kit")
         server_name = list(kit.servers_enabled.keys())[0]
         
-        updated_kit = await test_composer.disable_server("test-kit", server_name)
+        updated_kit = test_composer.disable_server("test-kit", server_name)
         
         assert updated_kit.servers_enabled[server_name] is False
 
@@ -136,7 +136,7 @@ class TestComposer:
         server_name = list(kit.servers_enabled.keys())[0]
         kit.servers_enabled[server_name] = False
         
-        updated_kit = await test_composer.enable_server("test-kit", server_name)
+        updated_kit = test_composer.enable_server("test-kit", server_name)
         
         assert updated_kit.servers_enabled[server_name] is True
 
@@ -145,7 +145,7 @@ class TestComposer:
         kit = test_composer.create_server_kit("test-kit")
         tool_name = list(kit.tools_enabled.keys())[0]
         
-        updated_kit = await test_composer.disable_tool("test-kit", tool_name)
+        updated_kit = test_composer.disable_tool("test-kit", tool_name)
         
         assert updated_kit.tools_enabled[tool_name] is False
 
@@ -155,13 +155,13 @@ class TestComposer:
         tool_name = list(kit.tools_enabled.keys())[0]
         kit.tools_enabled[tool_name] = False
         
-        updated_kit = await test_composer.enable_tool("test-kit", tool_name)
+        updated_kit = test_composer.enable_tool("test-kit", tool_name)
         
         assert updated_kit.tools_enabled[tool_name] is True
 
     async def test_list_gateways_empty(self, test_composer):
         """Test listing gateways when none exist."""
-        gateways = await test_composer.list_gateways()
+        gateways = test_composer.list_gateways()
         
         assert gateways == []
 
@@ -170,14 +170,14 @@ class TestComposer:
         kit = test_composer.create_server_kit("test-kit")
         gateway = await test_composer.add_gateway(kit)
         
-        retrieved_gateway = await test_composer.get_gateway("test-kit")
+        retrieved_gateway = test_composer.get_gateway("test-kit")
         
         assert retrieved_gateway == gateway
 
     async def test_get_gateway_not_found(self, test_composer):
         """Test getting a non-existent gateway."""
         with pytest.raises(ValueError, match="Gateway 'non-existent' not found"):
-            await test_composer.get_gateway("non-existent")
+            test_composer.get_gateway("non-existent")
 
     @patch('src.composer.Gateway')
     async def test_add_gateway(self, mock_gateway_class, test_composer):
@@ -219,7 +219,7 @@ class TestComposer:
         
         # Mock the _remove_route_from_app method to avoid FastAPI routing complexity
         with patch.object(test_composer, '_remove_route_from_app', return_value=True) as mock_remove_route:
-            removed_gateway = await test_composer.remove_gateway("test-kit")
+            removed_gateway = test_composer.remove_gateway("test-kit")
         
         assert removed_gateway == gateway1
         assert "test-kit" not in test_composer.gateway_map
@@ -229,7 +229,7 @@ class TestComposer:
     async def test_remove_gateway_not_found(self, test_composer):
         """Test removing a non-existent gateway."""
         with pytest.raises(ValueError, match="Gateway non-existent does not exist"):
-            await test_composer.remove_gateway("non-existent")
+            test_composer.remove_gateway("non-existent")
 
     @patch('src.composer.Gateway')
     async def test_remove_last_gateway(self, mock_gateway_class, test_composer):
@@ -244,7 +244,7 @@ class TestComposer:
         await test_composer.add_gateway(kit)
         
         with pytest.raises(ValueError, match="Cannot remove the last gateway"):
-            await test_composer.remove_gateway("test-kit")
+            test_composer.remove_gateway("test-kit")
 
     def test_asgi_gateway_routes(self, test_composer):
         """Test getting ASGI gateway routes."""
