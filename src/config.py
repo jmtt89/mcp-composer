@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import List
 
-from domain.downstream_server import DownstreamMCPServerConfig
+from .domain.downstream_server import DownstreamMCPServerConfig
 from dotenv import load_dotenv
 
 # load .env file
