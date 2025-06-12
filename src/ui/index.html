@@ -365,10 +365,149 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        /* MCP Servers Management Styles */
+        .mcp-server-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .mcp-server-info {
+            flex: 1;
+        }
+
+        .mcp-server-name {
+            font-weight: 600;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        .mcp-server-details {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .mcp-server-stats {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .mcp-server-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .mcp-server-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .mcp-server-status.connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .mcp-server-status.disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            font-family: monospace;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+        /* Assignment List Styles */
+        .assignment-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .assignment-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .assignment-item:last-child {
+            border-bottom: none;
+        }
+
+        .assignment-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .assignment-item-info {
+            flex: 1;
+        }
+
+        .assignment-item-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .assignment-item-details {
+            font-size: 0.8em;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <h1>MCP Composer Management Interface</h1>
+    
+    <!-- MCP Servers Management Section -->
+    <div id="mcp-servers-section" class="gateway-card">
+        <div class="gateway-header">
+            <div class="gateway-name">MCP Servers Management</div>
+            <button class="copy-btn" onclick="showAddMCPServerModal()">Add New Server</button>
+        </div>
+        <div id="mcp-servers-container">
+            <div class="loading">Loading MCP servers...</div>
+        </div>
+    </div>
+    
     <div id="gateways-container"></div>
     <div id="notification" class="notification"></div>
     <div id="delete-modal" class="modal-overlay">
@@ -378,6 +517,53 @@
             <div class="modal-footer">
                 <button id="cancel-delete-btn" class="copy-btn">Cancel</button>
                 <button id="confirm-delete-btn" class="disable-btn">Confirm Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add MCP Server Modal -->
+    <div id="add-mcp-server-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">Add New MCP Server</div>
+            <div class="modal-body">
+                <form id="add-mcp-server-form">
+                    <div class="form-group">
+                        <label for="server-name">Server Name:</label>
+                        <input type="text" id="server-name" name="name" required placeholder="e.g., my-custom-server">
+                    </div>
+                    <div class="form-group">
+                        <label for="server-command">Command:</label>
+                        <input type="text" id="server-command" name="command" required placeholder="e.g., npx">
+                    </div>
+                    <div class="form-group">
+                        <label for="server-args">Arguments (one per line):</label>
+                        <textarea id="server-args" name="args" rows="3" placeholder="-y&#10;@modelcontextprotocol/server-example"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="server-env">Environment Variables (JSON format):</label>
+                        <textarea id="server-env" name="env" rows="2" placeholder='{"VAR1": "value1", "VAR2": "value2"}'></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-add-server-btn" class="copy-btn">Cancel</button>
+                <button id="confirm-add-server-btn" class="enable-btn">Add Server</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Server Assignment Modal -->
+    <div id="server-assignment-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">Assign Server to ServerKit</div>
+            <div class="modal-body">
+                <div id="assignment-content">
+                    <!-- Content will be populated dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-assignment-btn" class="copy-btn">Cancel</button>
+                <button id="confirm-assignment-btn" class="enable-btn">Assign</button>
             </div>
         </div>
     </div>
@@ -1041,8 +1227,261 @@
             }
         }
 
+        // === MCP Servers Management Functions ===
+
+        async function loadMCPServers() {
+            const container = document.getElementById('mcp-servers-container');
+            container.innerHTML = '<div class="loading">Loading MCP servers...</div>';
+
+            try {
+                const response = await apiCall('/mcp', 'GET');
+                console.log('Received MCP servers:', response);
+                
+                container.innerHTML = '';
+
+                if (!response || !response.servers || response.servers.length === 0) {
+                    container.innerHTML = '<div class="no-data">No MCP servers available</div>';
+                    return;
+                }
+
+                response.servers.forEach(server => {
+                    container.appendChild(createMCPServerItem(server));
+                });
+                
+            } catch (error) {
+                container.innerHTML = '<div class="no-data">Error loading MCP servers</div>';
+                console.error('Error loading MCP servers:', error);
+            }
+        }
+
+        function createMCPServerItem(server) {
+            const item = document.createElement('div');
+            item.className = 'mcp-server-item';
+
+            const info = document.createElement('div');
+            info.className = 'mcp-server-info';
+
+            const name = document.createElement('div');
+            name.className = 'mcp-server-name';
+            name.textContent = server.name;
+
+            const details = document.createElement('div');
+            details.className = 'mcp-server-details';
+            details.textContent = `Command: ${server.command} ${server.args.join(' ')}`;
+
+            const stats = document.createElement('div');
+            stats.className = 'mcp-server-stats';
+            stats.textContent = `Tools: ${server.tools_count} | Assigned to: ${server.assigned_to_kits.length} kits`;
+
+            info.appendChild(name);
+            info.appendChild(details);
+            info.appendChild(stats);
+
+            const actions = document.createElement('div');
+            actions.className = 'mcp-server-actions';
+
+            const status = document.createElement('span');
+            status.className = `mcp-server-status ${server.status}`;
+            status.textContent = server.status;
+
+            const assignBtn = document.createElement('button');
+            assignBtn.className = 'copy-btn';
+            assignBtn.textContent = 'Assign';
+            assignBtn.onclick = () => showServerAssignmentModal(server.name);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'disable-btn';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.onclick = () => deleteMCPServer(server.name);
+
+            actions.appendChild(status);
+            actions.appendChild(assignBtn);
+            actions.appendChild(deleteBtn);
+
+            item.appendChild(info);
+            item.appendChild(actions);
+
+            return item;
+        }
+
+        function showAddMCPServerModal() {
+            document.getElementById('add-mcp-server-modal').style.display = 'flex';
+        }
+
+        function hideAddMCPServerModal() {
+            document.getElementById('add-mcp-server-modal').style.display = 'none';
+            document.getElementById('add-mcp-server-form').reset();
+        }
+
+        async function addMCPServer() {
+            const form = document.getElementById('add-mcp-server-form');
+            const formData = new FormData(form);
+            
+            try {
+                const argsText = formData.get('args').trim();
+                const args = argsText ? argsText.split('\n').map(arg => arg.trim()).filter(arg => arg) : [];
+                
+                const envText = formData.get('env').trim();
+                let env = {};
+                if (envText) {
+                    env = JSON.parse(envText);
+                }
+
+                const serverConfig = {
+                    name: formData.get('name'),
+                    command: formData.get('command'),
+                    args: args,
+                    env: env
+                };
+
+                await apiCall('/mcp', 'POST', serverConfig);
+                showNotification('MCP server added successfully', 'success');
+                hideAddMCPServerModal();
+                loadMCPServers();
+                
+            } catch (error) {
+                if (error.message.includes('JSON')) {
+                    showNotification('Invalid JSON in environment variables', 'error');
+                } else {
+                    showNotification('Failed to add MCP server', 'error');
+                }
+                console.error('Error adding MCP server:', error);
+            }
+        }
+
+        async function deleteMCPServer(serverName) {
+            if (!confirm(`Are you sure you want to delete the MCP server "${serverName}"?`)) {
+                return;
+            }
+
+            try {
+                await apiCall(`/mcp/${serverName}`, 'DELETE');
+                showNotification('MCP server deleted successfully', 'success');
+                loadMCPServers();
+                loadGateways(); // Refresh gateways as they might be affected
+                
+            } catch (error) {
+                showNotification('Failed to delete MCP server', 'error');
+                console.error('Error deleting MCP server:', error);
+            }
+        }
+
+        async function showServerAssignmentModal(serverName) {
+            try {
+                // Get all server kits
+                const serverKits = await apiCall('/kits', 'GET');
+                
+                const modal = document.getElementById('server-assignment-modal');
+                const content = document.getElementById('assignment-content');
+                
+                content.innerHTML = `
+                    <p>Select ServerKits to assign/unassign server "<strong>${serverName}</strong>":</p>
+                    <div class="assignment-list" id="assignment-list">
+                        <div class="loading">Loading ServerKits...</div>
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+                
+                // Load assignment states
+                const listContainer = document.getElementById('assignment-list');
+                listContainer.innerHTML = '';
+                
+                for (const kit of serverKits) {
+                    const assignedServers = await apiCall(`/kits/${kit.name}/mcp`, 'GET');
+                    const isAssigned = assignedServers.includes(serverName);
+                    
+                    const item = document.createElement('div');
+                    item.className = 'assignment-item';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = isAssigned;
+                    checkbox.dataset.kitName = kit.name;
+                    checkbox.dataset.serverName = serverName;
+                    
+                    const itemInfo = document.createElement('div');
+                    itemInfo.className = 'assignment-item-info';
+                    
+                    const itemName = document.createElement('div');
+                    itemName.className = 'assignment-item-name';
+                    itemName.textContent = kit.name;
+                    
+                    const itemDetails = document.createElement('div');
+                    itemDetails.className = 'assignment-item-details';
+                    itemDetails.textContent = `${Object.keys(kit.servers_enabled).length} servers, ${Object.keys(kit.tools_enabled).length} tools`;
+                    
+                    itemInfo.appendChild(itemName);
+                    itemInfo.appendChild(itemDetails);
+                    
+                    item.appendChild(checkbox);
+                    item.appendChild(itemInfo);
+                    
+                    listContainer.appendChild(item);
+                }
+                
+            } catch (error) {
+                showNotification('Failed to load ServerKits', 'error');
+                console.error('Error loading ServerKits:', error);
+            }
+        }
+
+        function hideServerAssignmentModal() {
+            document.getElementById('server-assignment-modal').style.display = 'none';
+        }
+
+        async function confirmServerAssignment() {
+            const checkboxes = document.querySelectorAll('#assignment-list input[type="checkbox"]');
+            
+            try {
+                for (const checkbox of checkboxes) {
+                    const kitName = checkbox.dataset.kitName;
+                    const serverName = checkbox.dataset.serverName;
+                    const shouldBeAssigned = checkbox.checked;
+                    
+                    // Get current assignment state
+                    const assignedServers = await apiCall(`/kits/${kitName}/mcp`, 'GET');
+                    const isCurrentlyAssigned = assignedServers.includes(serverName);
+                    
+                    if (shouldBeAssigned && !isCurrentlyAssigned) {
+                        // Assign server
+                        await apiCall(`/kits/${kitName}/mcp/${serverName}/assign`, 'POST', { auto_enable: true });
+                    } else if (!shouldBeAssigned && isCurrentlyAssigned) {
+                        // Unassign server
+                        await apiCall(`/kits/${kitName}/mcp/${serverName}/unassign`, 'POST');
+                    }
+                }
+                
+                showNotification('Server assignments updated successfully', 'success');
+                hideServerAssignmentModal();
+                loadMCPServers();
+                loadGateways(); // Refresh gateways to show updated assignments
+                
+            } catch (error) {
+                showNotification('Failed to update server assignments', 'error');
+                console.error('Error updating assignments:', error);
+            }
+        }
+
+        // Modal event handlers
+        document.getElementById('cancel-add-server-btn').onclick = hideAddMCPServerModal;
+        document.getElementById('confirm-add-server-btn').onclick = addMCPServer;
+        document.getElementById('cancel-assignment-btn').onclick = hideServerAssignmentModal;
+        document.getElementById('confirm-assignment-btn').onclick = confirmServerAssignment;
+
+        // Close modals when clicking outside
+        document.getElementById('add-mcp-server-modal').onclick = function(e) {
+            if (e.target === this) hideAddMCPServerModal();
+        };
+        document.getElementById('server-assignment-modal').onclick = function(e) {
+            if (e.target === this) hideServerAssignmentModal();
+        };
+
         // --- Initial Load ---
-        document.addEventListener('DOMContentLoaded', loadGateways);
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMCPServers();
+            loadGateways();
+        });
     </script>
 </body>
 </html>

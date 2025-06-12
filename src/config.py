@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List
 
 from .domain.downstream_server import DownstreamMCPServerConfig
+from .config_manager import ConfigurationManager
 from dotenv import load_dotenv
 
 # load .env file
@@ -66,8 +67,9 @@ class Config:
         self.config_json_path = self._get_config_path(
             "MCP_SERVERS_CONFIG_PATH", self._DEFAULT_CONFIG_PATH
         )
+        self.config_manager = ConfigurationManager(self.config_json_path)
         self.servers: List[DownstreamMCPServerConfig] = (
-            self._load_mcp_servers_config_from_json()
+            self.config_manager.get_mcp_servers_for_config_loading()
         )
         # Read host and port from environment variables with defaults
         self.host = os.environ.get("HOST", "0.0.0.0")

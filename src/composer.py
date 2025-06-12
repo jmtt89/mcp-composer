@@ -18,9 +18,14 @@ class Composer:
         self.gateway_map: Dict[str, Gateway] = {}
         self._asgi_app = FastAPI()
         self.config = config
+        self.config_manager = config.config_manager  # Reference to ConfigurationManager
 
     def asgi_gateway_routes(self):
         return self._asgi_app
+
+    async def migrate_server_kits(self):
+        """Migrate existing ServerKits to support assigned_servers."""
+        await self.config_manager.migrate_existing_server_kits(self.server_kits_map)
 
     # APIs
     # ServerKit
