@@ -268,6 +268,39 @@ class TestGateway:
         assert 'debug' in call_args.kwargs
         assert call_args.kwargs['debug'] is True
 
+    def test_as_asgi_route_returns_starlette_app(self, mock_server_kit, mock_downstream_controller):
+        """Test that as_asgi_route returns a Starlette application."""
+        gateway = Gateway(mock_server_kit, mock_downstream_controller, "http://localhost:8000")
+        asgi_app = gateway.as_asgi_route()
+        
+        # Import here to avoid circular dependencies
+        from starlette.applications import Starlette
+        
+        assert isinstance(asgi_app, Starlette)
+        assert asgi_app.debug is True
+        
+        # Check that routes are configured
+        assert len(asgi_app.routes) == 2
+
+    def test_as_asgi_route_sse_endpoint_configuration(self, mock_server_kit, mock_downstream_controller):
+        """Test that the SSE endpoint is properly configured in as_asgi_route."""
+        # Create a real gateway instance with mocks
+        gateway = Gateway(
+            server_kit=mock_server_kit,
+            downstream_controller=mock_downstream_controller,
+            mcp_composer_proxy_url="http://test:8000"
+        )
+        
+        # Get the ASGI app
+        asgi_app = gateway.as_asgi_route()
+        
+        # Verify the app structure
+        from starlette.applications import Starlette
+        assert isinstance(asgi_app, Starlette)
+        
+        # Verify routes exist
+        assert len(asgi_app.routes) >= 1
+
     def test_gateway_paths_generation(self, mock_server_kit, mock_downstream_controller):
         """Test that gateway paths are generated correctly."""
         test_cases = [

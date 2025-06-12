@@ -271,3 +271,24 @@ class TestComposer:
         
         with pytest.raises(KeyError):
             await test_composer.enable_tool("non-existent", "tool")
+
+    def test_kit_count_tracking(self, test_composer):
+        """Test that kit count is tracked correctly."""
+        assert len(test_composer.server_kits_map) == 0
+        
+        kit1 = test_composer.create_server_kit("kit1")
+        assert len(test_composer.server_kits_map) == 1
+        
+        kit2 = test_composer.create_server_kit("kit2")
+        assert len(test_composer.server_kits_map) == 2
+        
+        # Verify both kits are accessible
+        assert test_composer.get_server_kit("kit1") == kit1
+        assert test_composer.get_server_kit("kit2") == kit2
+
+    def test_composer_properties(self, test_composer):
+        """Test basic composer properties."""
+        assert test_composer.config is not None
+        assert test_composer.downstream_controller is not None
+        assert isinstance(test_composer.server_kits_map, dict)
+        assert isinstance(test_composer.gateway_map, dict)

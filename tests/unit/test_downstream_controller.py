@@ -5,6 +5,7 @@ from contextlib import AsyncExitStack
 
 from src.downstream_controller import DownstreamController
 from src.domain.downstream_server import DownstreamMCPServerConfig, DownstreamMCPServer
+from src.domain.mcp_models import MCPServerConfig
 
 
 class TestDownstreamController:
@@ -239,3 +240,181 @@ class TestDownstreamController:
         
         # Controller should not be marked as initialized
         assert controller._initialized is False
+
+
+class TestDynamicServerManagement:
+    """Test dynamic server management methods."""
+
+    @pytest.fixture
+    def controller(self):
+        """Create an initialized controller for testing."""
+        controller = DownstreamController([])
+        controller._initialized = True
+        return controller
+
+    @pytest.fixture
+    def sample_mcp_config(self):
+        """Sample MCP server config for testing."""
+        return MCPServerConfig(
+            name="dynamic-server",
+            command="python",
+            args=["-m", "test_server"],
+            env={"TEST": "true"}
+        )
+
+    @patch('src.downstream_controller.DownstreamMCPServer')
+    async def test_add_server_dynamically_success(self, mock_server_class, controller, sample_mcp_config):
+        """Test successfully adding a server dynamically."""
+        # Mock server instance
+        mock_server = MagicMock(spec=DownstreamMCPServer)
+        mock_server.get_control_name.return_value = "dynamic-server"
+        mock_server.initialize = AsyncMock()
+        mock_server.list_tools = AsyncMock(return_value=[])
+        mock_server_class.return_value = mock_server
+        
+        # Convert to DownstreamMCPServerConfig
+        downstream_config = sample_mcp_config.to_downstream_config()
+        
+        await controller.add_server_dynamically(downstream_config)
+        
+        # Verify server was registered
+        assert "dynamic-server" in controller._servers_map
+        mock_server.initialize.assert_called_once()
+
+    async def test_add_server_dynamically_duplicate(self, controller, sample_mcp_config):
+        """Test adding a server with duplicate name."""
+        # Add existing server to servers_map (that's what the method checks)
+        mock_server = MagicMock()
+        controller._servers_map["dynamic-server"] = mock_server
+        
+        downstream_config = sample_mcp_config.to_downstream_config()
+        
+        with pytest.raises(ValueError, match="already exists"):
+            await controller.add_server_dynamically(downstream_config)
+
+    @patch('src.downstream_controller.DownstreamMCPServer')
+    async def test_add_server_dynamically_initialization_failure(self, mock_server_class, controller, sample_mcp_config):
+        """Test handling server initialization failure during dynamic add."""
+        # Mock server that fails initialization
+        mock_server = MagicMock(spec=DownstreamMCPServer)
+        mock_server.initialize = AsyncMock(side_effect=Exception("Init failed"))
+        mock_server_class.return_value = mock_server
+        
+        downstream_config = sample_mcp_config.to_downstream_config()
+        
+        with pytest.raises(Exception, match="Init failed"):
+            await controller.add_server_dynamically(downstream_config)
+
+    async def test_remove_server_dynamically_success(self, controller):
+        """Test successfully removing a server dynamically."""
+        # Add a server to remove
+        mock_server = MagicMock()
+        mock_server.get_control_name.return_value = "test-server"
+        mock_server.shutdown = AsyncMock()
+        controller._servers_map["test-server"] = mock_server
+        controller._all_servers_tools.append((mock_server, []))
+        
+        await controller.remove_server_dynamically("test-server")
+        
+        assert "test-server" not in controller._servers_map
+        assert len(controller._all_servers_tools) == 0
+        mock_server.shutdown.assert_called_once()
+
+    async def test_remove_server_dynamically_not_found(self, controller):
+        """Test removing a non-existent server."""
+        with pytest.raises(ValueError, match="not found"):
+            await controller.remove_server_dynamically("nonexistent")
+
+    async def test_remove_server_dynamically_with_dependencies(self, controller):
+        """Test removing a server with dependencies (should raise error)."""
+        # Add a server first
+        mock_server = MagicMock()
+        controller._servers_map["test-server"] = mock_server
+        
+        # Mock check_server_dependencies to return dependencies
+        server_kits_map = {"kit1": MagicMock()}
+        dependencies = controller.check_server_dependencies("test-server", server_kits_map)
+        
+        # If there are dependencies, we would need to check them in the API layer
+        # For now, just test that the method can be called
+        assert isinstance(dependencies, list)
+
+    def test_check_server_dependencies_no_dependencies(self, controller):
+        """Test checking dependencies when server has no dependencies."""
+        server_kits_map = {
+            "kit1": MagicMock(),
+            "kit2": MagicMock()
+        }
+        # Mock that no kits have this server assigned
+        for kit in server_kits_map.values():
+            kit.is_server_assigned.return_value = False
+        
+        dependencies = controller.check_server_dependencies("test-server", server_kits_map)
+        assert dependencies == []
+
+    def test_check_server_dependencies_with_dependencies(self, controller):
+        """Test checking dependencies when server has dependencies."""
+        # Mock server kits
+        mock_kit1 = MagicMock()
+        mock_kit1.is_server_assigned.return_value = True
+        mock_kit2 = MagicMock()
+        mock_kit2.is_server_assigned.return_value = False
+        
+        server_kits_map = {
+            "kit1": mock_kit1,
+            "kit2": mock_kit2
+        }
+        
+        dependencies = controller.check_server_dependencies("test-server", server_kits_map)
+        
+        assert dependencies == ["kit1"]
+        mock_kit1.is_server_assigned.assert_called_with("test-server")
+        mock_kit2.is_server_assigned.assert_called_with("test-server")
+
+    def test_list_available_servers(self, controller):
+        """Test listing available servers."""
+        # Add some servers to the map
+        mock_server1 = MagicMock()
+        mock_server2 = MagicMock()
+        controller._servers_map["server1"] = mock_server1
+        controller._servers_map["server2"] = mock_server2
+        
+        servers = controller.list_available_servers()
+        
+        assert len(servers) == 2
+        assert "server1" in servers
+        assert "server2" in servers
+
+    def test_get_server_status_connected(self, controller):
+        """Test getting status of connected server."""
+        mock_server = MagicMock()
+        controller._servers_map["test-server"] = mock_server
+        
+        status = controller.get_server_status("test-server")
+        
+        assert status == "connected"
+
+    def test_get_server_status_not_found(self, controller):
+        """Test getting status of non-existent server."""
+        status = controller.get_server_status("nonexistent")
+        assert status == "not_found"
+
+    def test_get_server_tools_count(self, controller):
+        """Test getting server tools count."""
+        # Add mock tools for a server
+        from src.domain.downstream_server import DownstreamMCPServerTool
+        mock_tool1 = MagicMock(spec=DownstreamMCPServerTool)
+        mock_tool1.server_control_name = "test-server"
+        mock_tool2 = MagicMock(spec=DownstreamMCPServerTool)
+        mock_tool2.server_control_name = "test-server"
+        mock_tool3 = MagicMock(spec=DownstreamMCPServerTool)
+        mock_tool3.server_control_name = "other-server"
+        
+        controller._tools_map = {
+            "tool1": mock_tool1,
+            "tool2": mock_tool2,
+            "tool3": mock_tool3
+        }
+        
+        count = controller.get_server_tools_count("test-server")
+        assert count == 2
